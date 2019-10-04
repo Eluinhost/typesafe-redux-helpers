@@ -18,23 +18,28 @@ export interface ReducerHelpers<State> {
     success: (state: State, action: SuccessAction<Payload, Type>) => State,
     failure?: (state: State, action: FailedAction<Type>) => State,
   ) => this;
+  /**
+   * Run an inner reducer to manage given property. All actions will be passed through to this reducer.
+   * Useful for composing reducers
+   */
+  readonly forProperty: <Property extends keyof State>(prop: Property, reducer: Reducer<State[Property]>) => this;
 }
+
+// default should just not make any changes and return same reference
+const defaultReducer = state => state;
 
 export const createReducer = <State>(initialState: State): Reducer<State> & ReducerHelpers<State> => {
   // map of action types -> reducer to run for it
   const mappings: { [type: string]: Reducer<State> } = {};
+  // reducers that run after every action
+  const postReducers: Array<Reducer<State>> = [];
 
   // actual reducer that will be used by redux
-  const reducer: Reducer<State> = (state: State = initialState, action: Action): State => {
-    const configuredReducer = mappings[action.type];
-
-    // if we don't have a registered reducer for the action dont do anything
-    if (!configuredReducer) {
-      return state;
-    }
-
-    return configuredReducer(state, action);
-  };
+  const reducer: Reducer<State> = (state: State = initialState, action: Action): State =>
+    [mappings[action.type] || defaultReducer, ...postReducers].reduce(
+      (intermediateState, currentReducer) => currentReducer(intermediateState, action),
+      state,
+    );
 
   const helpers: ReducerHelpers<State> = {
     handleUntypedAction(action, reducer) {
@@ -60,6 +65,19 @@ export const createReducer = <State>(initialState: State): Reducer<State> & Redu
       };
 
       return this.handleUntypedAction(actionCreator.actionType, splitReducer);
+    },
+    forProperty<Property extends keyof State>(prop: Property, reducer: Reducer<State[Property]>) {
+      const innerReducer = (state: State, action: Action) => {
+        const input = state[prop];
+        const output = reducer(state[prop], action);
+
+        // only return a mutated state if the output has actually changed reference
+        return output === input ? state : { ...state, [prop]: output };
+      };
+
+      postReducers.push(innerReducer);
+
+      return this;
     },
   };
 
