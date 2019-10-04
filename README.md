@@ -150,3 +150,20 @@ createReducer(initialState).handleUntypedAction('INCREMENT', (state, action) => 
   count: action.payload.amount,
 }));
 ```
+
+# Child reducers
+
+Reducers can be composed by using `.forProperty('prop', childReducer)`
+
+```typescript
+const innerReducer = createReducer(initialInnerState)
+  .handleAction(STARTED_FETCHING, () => ({ isFetching: true }))
+  .handleAction(STOPPED_FETCHING, () => ({ isFetching: false }));
+
+createReducer(initialState)
+  .handleAction(INCREMENT, state => ({ count: count + 1, inner: state.inner }))
+  .forProperty('inner', innerReducer);
+```
+
+The inner reducer will have every action available like every reducer and will manage the state for the single
+property 'inner' for this example
