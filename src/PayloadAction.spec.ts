@@ -3,6 +3,7 @@ import {
   createFailedAction,
   createSuccessAction,
   FailedAction,
+  isFailedAction,
   isSuccessfulAction,
   SuccessAction,
 } from './PayloadAction';
@@ -14,6 +15,16 @@ describe('isSuccessfulAction', () => {
 
   it('should return false for a FailedAction', () => {
     expect(isSuccessfulAction(createFailedAction('test', new Error('test error')))).toBe(false);
+  });
+});
+
+describe('isFailedAction', () => {
+  it('should return false for a SuccessAction', () => {
+    expect(isFailedAction(createSuccessAction('test', 10))).toBe(false);
+  });
+
+  it('should return true for a FailedAction', () => {
+    expect(isFailedAction(createFailedAction('test', new Error('test error')))).toBe(true);
   });
 });
 

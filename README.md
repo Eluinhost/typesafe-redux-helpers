@@ -81,6 +81,10 @@ dispatch({
 });
 ```
 
+## Type Guards
+
+`isSuccessfulAction` and `isFailedAction` can be used to safely cast to SuccessAction and FailedAction respectively
+
 # Create reducer
 
 A reducer can be created by calling `createReducer(initialState)`. The State type of the reducer

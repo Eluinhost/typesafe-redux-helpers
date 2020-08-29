@@ -17,11 +17,18 @@ export interface FailedAction<Type extends string = any> extends Action<Type> {
 export type PayloadAction<Payload, Type extends string = any> = SuccessAction<Payload, Type> | FailedAction<Type>;
 
 /**
- * Simple type guard to cast PayloadAction -> Success/Failure actions
+ * Simple type guard to cast PayloadAction -> Success actions
  */
 export const isSuccessfulAction = <Payload, Type extends string>(
   action: PayloadAction<Payload, Type>,
 ): action is SuccessAction<Payload, Type> => action.error !== true;
+
+/**
+ * Simple type guard to cast PayloadAction -> Failed actions
+ */
+export const isFailedAction = <Payload, Type extends string>(
+  action: PayloadAction<Payload, Type>,
+): action is FailedAction<Type> => action.error === true;
 
 /**
  * Casts the action to success but will throw if the action was not actually a successful one.
