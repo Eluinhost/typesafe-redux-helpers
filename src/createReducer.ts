@@ -21,12 +21,39 @@ export interface ReducerHelpers<State> {
   /**
    * Run an inner reducer to manage given property. All actions will be passed through to this reducer.
    * Useful for composing reducers
+   *
+   * @deprecated Deprecated; suggested use of `combineReducers` and avoid usage of .handleAction alongside inner reducers at the same level
+   *
+   * e.g. something similar to this example:
+   *
+   * ```
+   * const addresses = createReducer({ billing: [] })
+   *    .handleAction(ADD_BILLING_ADDRESS, (state, action) => ({ billing: [...state.billing, action.payload.address ]}));
+   *
+   * const reducer = createReducer({ username: 'username', addresses: undefined })
+   *    .handleAction(LOGIN, (state, action) => ({ username: action.payload.username, addresses: state.addresses }))
+   *    .forProperty('addresses', addresses);
+   * ```
+   *
+   * would become something like this:
+   *
+   * ```
+   * const address = createReducer({ billing: [] })
+   *    .handleAction(ADD_BILLING_ADDRESS, (state, action) => ({ billing: [...state.billing, action.payload.address ]}));
+   *
+   * const user = createReducer({ username: 'username' })
+   *    .handleAction(LOGIN, (state, action) => ({ username: action.payload.username }))
+   *
+   * const reducer = combineReducers({ user, address })
+   * ```
+   *
+   * Obviously this would require a change of structures so this method is just deprecated for the time being
    */
   readonly forProperty: <Property extends keyof State>(prop: Property, reducer: Reducer<State[Property]>) => this;
 }
 
 // default should just not make any changes and return same reference
-const defaultReducer = state => state;
+const defaultReducer = (state) => state;
 
 export const createReducer = <State>(initialState: State): Reducer<State> & ReducerHelpers<State> => {
   // map of action types -> reducer to run for it
